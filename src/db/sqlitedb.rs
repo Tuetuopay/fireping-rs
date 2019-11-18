@@ -1,16 +1,20 @@
 use rusqlite::{Connection, Result, NO_PARAMS};
 use crate::Target;
 
-pub struct Db {
+use crate::db::Db;
+
+pub struct SqliteDb {
     db: Connection
 }
 
-impl Db {
-    pub fn new() -> Result<Db> {
-        Ok(Db { db: Connection::open("fireping.db")? })
+impl SqliteDb {
+    pub fn new() -> Result<Self> {
+        Ok(Self { db: Connection::open("fireping.db")? })
     }
+}
 
-    pub fn init(&self) -> Result<usize> {
+impl Db<rusqlite::Error> for SqliteDb {
+    fn init(&self) -> Result<usize> {
         self.db.execute(
             "create table if not exists targets (
                 id integer primary key,
@@ -21,7 +25,7 @@ impl Db {
         )
     }
 
-    pub fn targets(&self) -> Result<Vec<Target>> {
+    fn targets(&self) -> Result<Vec<Target>> {
         let sql = "select targets.target, targets.name from targets";
         let mut query = self.db.prepare(sql)?;
 

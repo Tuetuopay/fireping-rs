@@ -5,7 +5,6 @@ extern crate env_logger;
 use fastping_rs::Pinger;
 use timer::Timer;
 use chrono::Duration;
-use rusqlite::Result as SQLResult;
 use nix::unistd::{setuid, Uid};
 use std::sync::mpsc;
 use std::env;
@@ -17,13 +16,13 @@ use ping_result::PingResult;
 mod pinger;
 use pinger::run_ping;
 mod db;
-use db::Db;
+use db::{Db, sqlitedb::SqliteDb, yamldb::YamlDb};
 mod tsdb;
 use tsdb::Tsdb;
 
 static TIMEOUT: u64 = 100;
-static TPING: i64 = 100;
-static NPING: u32 = 1;
+static TPING: i64 = 1000;
+static NPING: u32 = 5;
 
 #[derive(Debug, Clone)]
 pub struct Target {
@@ -31,11 +30,24 @@ pub struct Target {
     target: String
 }
 
+#[derive(Debug)]
+pub enum Error {
+    YamlDbError(db::yamldb::Error),
+    SqliteDbError(rusqlite::Error),
+}
+
+impl From<db::yamldb::Error> for Error {
+    fn from(e: db::yamldb::Error) -> Self { Self::YamlDbError(e) }
+}
+impl From<rusqlite::Error> for Error {
+    fn from(e: rusqlite::Error) -> Self { Self::SqliteDbError(e) }
+}
+
 fn getenv(name: &str, default: &str) -> String {
     match env::var(&name) { Ok(s) => s, Err(_e) => default.to_string() }
 }
 
-fn main() -> SQLResult<()> {
+fn main() -> Result<(), Error> {
     if !Uid::current().is_root() {
         match setuid(Uid::from_raw(0)) {
             Err(e) => panic!("Error switching to root: {}", e),
@@ -57,9 +69,17 @@ fn main() -> SQLResult<()> {
         Err(e) => panic!("Error creating pinger: {}", e)
     };
 
-    let db = Db::new()?;
-    db.init()?;
-    let ips = db.targets()?;
+    let ips = if let Ok(db) = YamlDb::new() {
+        db.targets()?
+    }
+    else if let Ok(db) = SqliteDb::new() {
+        db.init()?;
+        db.targets()?
+    }
+    else {
+        panic!("No valid db found")
+    };
+
     println!("Loaded from db: {:?}", ips);
 
     for ip in &ips {

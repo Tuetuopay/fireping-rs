@@ -28,7 +28,7 @@ fn print_columns(indent: usize,
         print!("{}", " ".to_string().repeat(indent));
 
         for j in 0..columns.len() {
-            let s = &columns[j][i];;
+            let s = &columns[j][i];
             print!("{}{} ", s, " ".to_string().repeat(lens[j] - s.len()));
         }
 
