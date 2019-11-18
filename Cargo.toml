@@ -5,16 +5,15 @@ authors = ["Tuetuopay <tuetuopay@me.com>"]
 edition = "2018"
 
 [dependencies]
-#fastping-rs = "0.1.1"
-fastping-rs = { git = "https://github.com/Tuetuopay/fastping-rs" }
+fastping-rs = "0.1.4"
 env_logger = "0.6.0"
 log = "0.4.6"
 timer = "0.2.0"
 chrono = "0.4.6"
 rusqlite = "0.16.0"
 nix = "0.10.0"
-pnet_macros = "0.21.0"
+pnet_macros = "0.22.0"
 #influent = "0.5.1"
-influent = { path = "../influent.rs" }
+influent = { git = "https://github.com/Tuetuopay/influent.rs", branch = "reqwest" }
 futures = "0.1"
 tokio = "0.1"
