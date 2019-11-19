@@ -100,7 +100,7 @@ fn main() -> Result<(), Error> {
             Ok((res, timestamp)) => {
                 println!("Summary:");
                 log::print_summary(&ips, &res);
-                // tsdb.push_results(&ips, res, timestamp as i64);
+                tsdb.push_results(&ips, res, timestamp as i64);
             },
             Err(_) => panic!("Timer thread disconnected!")
         }
