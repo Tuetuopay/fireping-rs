@@ -1,0 +1,59 @@
+pipeline:
+  build:
+    image: rust:1.39.0
+    commands:
+      - 'cargo build --release'
+      - 'file target/release/fireping-rs'
+
+  upload-build:
+    image: plugins/s3
+    endpoint: https://drone.s3.vps4.tuetuopay.fr
+    bucket: fireping
+    source: target/release/fireping-rs
+    target: '/build/${DRONE_COMMIT}'
+    path_style: true
+    strip_prefix: target/release
+    group: upload
+    secrets: [ plugin_access_key, plugin_secret_key ]
+    when:
+      status: success
+
+  upload-tag:
+    image: plugins/s3
+    endpoint: https://drone.s3.vps4.tuetuopay.fr
+    bucket: fireping
+    source: target/release/fireping-rs
+    target: '/build/${DRONE_TAG}'
+    path_style: true
+    strip_prefix: target/release
+    group: upload
+    secrets: [ plugin_access_key, plugin_secret_key ]
+    when:
+      status: success
+      event: tag
+
+  upload-branch:
+    image: plugins/s3
+    endpoint: https://drone.s3.vps4.tuetuopay.fr
+    bucket: fireping
+    source: target/release/fireping-rs
+    target: '/build/${DRONE_BRANCH}'
+    path_style: true
+    strip_prefix: target/release
+    group: upload
+    secrets: [ plugin_access_key, plugin_secret_key ]
+    when:
+      status: success
+
+  upload-latest:
+    image: plugins/s3
+    endpoint: https://drone.s3.vps4.tuetuopay.fr
+    bucket: fireping
+    source: target/release/fireping-rs
+    target: '/build/latest'
+    path_style: true
+    strip_prefix: target/release
+    group: upload
+    secrets: [ plugin_access_key, plugin_secret_key ]
+    when:
+      status: success
